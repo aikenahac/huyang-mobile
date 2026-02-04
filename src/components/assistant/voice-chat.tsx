@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAssistantStore } from "@/lib/assistant-store";
 import { cn } from "@/lib/utils";
 import { Mic, MicOff, Send } from "lucide-react-native";
-
-// NOTE: This is a UI + state shell. ElevenLabs SDK wiring happens later.
+import { speakWithElevenLabs } from "@/lib/elevenlabs";
 
 export function VoiceChat() {
   const {
@@ -36,19 +35,31 @@ export function VoiceChat() {
     }
   }
 
-  function handleSendText() {
+  async function handleSendText() {
     if (!currentInput.trim()) return;
 
     const text = currentInput.trim();
     addMessage("user", text);
     setInput("");
 
-    // Placeholder for backend / OpenClaw bridge.
     setSpeaking(true);
-    setTimeout(() => {
-      addMessage("assistant", "This is a placeholder response from Huyang.");
+    try {
+      await speakWithElevenLabs(text);
+      // For now we only synthesize audio; you can plug in
+      // the actual OpenClaw / LLM reply here later.
+      addMessage(
+        "assistant",
+        "(ElevenLabs TTS call completed – wire playback and assistant reply here.)",
+      );
+    } catch (error) {
+      console.error("ElevenLabs TTS failed", error);
+      addMessage(
+        "assistant",
+        "I couldn't speak just now because the ElevenLabs call failed.",
+      );
+    } finally {
       setSpeaking(false);
-    }, 400);
+    }
   }
 
   return (
