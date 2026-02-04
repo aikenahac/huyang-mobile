@@ -1,0 +1,24 @@
+{
+  "common": {
+    "welcome": "Dobrodošli",
+    "language": "Jezik",
+    "settings": "Nastavitve"
+  },
+  "home": {
+    "title": "Dobrodošli v Expo Boilerplate",
+    "description": "To je primer internacionalizacije z uporabo i18next",
+    "changeLanguage": "Spremeni jezik",
+    "changeTheme": "Spremeni temo"
+  },
+  "languageSwitcher": {
+    "selectLanguage": "Izberi jezik",
+    "english": "Angleščina",
+    "slovenian": "Slovenščina"
+  },
+  "themeSwitcher": {
+    "selectTheme": "Izberi temo",
+    "light": "Svetla",
+    "dark": "Temna",
+    "system": "Sistem"
+  }
+}

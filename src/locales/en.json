@@ -1,0 +1,24 @@
+{
+  "common": {
+    "welcome": "Welcome",
+    "language": "Language",
+    "settings": "Settings"
+  },
+  "home": {
+    "title": "Welcome to Expo Boilerplate",
+    "description": "This is an example of internationalization using i18next",
+    "changeLanguage": "Change Language",
+    "changeTheme": "Change Theme"
+  },
+  "languageSwitcher": {
+    "selectLanguage": "Select Language",
+    "english": "English",
+    "slovenian": "Slovenian"
+  },
+  "themeSwitcher": {
+    "selectTheme": "Select Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  }
+}
