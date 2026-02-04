@@ -1,466 +1,262 @@
-# Hades - React Native (Expo) Boilerplate
+# Huyang Mobile
 
-A modern, production-ready React Native boilerplate built with Expo, featuring a comprehensive UI component library, theming system, internationalization, and best practices out of the box.
+A React Native (Expo) app that lets you talk to **Huyang** (your OpenClaw agent) using ElevenLabs for voice, with a growing control center for your smart home and servers.
 
-## 🚀 Features
-
-### Core Stack
-- **Expo SDK** with Router for file-based navigation
-- **TypeScript** for type safety
-- **React Native Reanimated** for smooth animations
-- **NativeWind** (Tailwind CSS) for styling
-- **React Native Reusables** - shadcn/ui components for React Native
-- **Metro** bundler with custom configuration
-
-### UI Components (React Native Reusables & custom)
-A complete set of pre-built, customizable UI components powered by [React Native Reusables](https://reactnativereusables.com/docs), the React Native implementation of shadcn/ui:
-- **Buttons** - Multiple variants (default, secondary, destructive, outline, ghost, link) and sizes
-- **Badges** - Status indicators with variants
-- **Cards** - Container components with header, content, and footer
-- **Alerts & Dialogs** - Modal dialogs with customizable actions
-- **Switches & Toggles** - Interactive boolean controls
-- **Dropdown Menus** - Contextual menus with items and separators
-- **Separators** - Visual dividers
-- **Icons** - Lucide icon integration with theme support
-- **Text** - Typography component with theme awareness
-- **Charts** - Line, Bar, and Area charts using Victory Native XL
-  - Fully themed and responsive
-  - Interactive tooltips
-  - Smooth animations
-  - Support for light/dark mode
-
-### Theming System
-- **Light & Dark Mode** support with system detection
-- **Manual theme switching** (Light, Dark, System)
-- **CSS Variables** based theming using hex colors
-- **Automatic theme persistence** via MMKV storage
-- **Color palette** fully customizable via `src/global.css`
-
-### Internationalization (i18n)
-- **React i18next** integration
-- **Multi-language support** (English & Slovenian included)
-- **Language switcher** component with persistence
-- **Expo Localization** for system language detection
-- Easy to add new languages via JSON files
-
-### Storage & State Management
-- **MMKV Storage** wrapper for high-performance local storage
-- Type-safe storage utilities (`getFromLocalStorage`, `setInLocalStorage`)
-- Pre-configured storage keys for theme and language preferences
-
-### Developer Experience
-- **TypeScript** with strict mode
-- **ESLint** configuration
-- **Git** initialized with proper .gitignore
-- **Expo Dev Client** ready for custom native modules
-- **Hot Module Replacement** for fast iteration
-- **Typed Routes** with Expo Router
-
-## 🎨 React Native Reusables Integration
-
-This boilerplate leverages **[React Native Reusables](https://rnr-docs.vercel.app)**, a comprehensive UI component library that brings the beloved shadcn/ui design system to React Native.
-
-### Why React Native Reusables?
-
-- **Copy-Paste Components**: Unlike traditional component libraries, you own the code. Components are added directly to your project, giving you full control to customize and modify them.
-- **shadcn/ui Design Language**: Familiar, battle-tested design patterns from the web, adapted for mobile
-- **Built on Primitives**: Uses `@rn-primitives` for unstyled, accessible components
-- **NativeWind First**: Styled with Tailwind CSS through NativeWind
-- **Type-Safe**: Full TypeScript support with proper type definitions
-- **Zero Runtime Overhead**: No component library bloat - only the components you add are included
-
-### How It Works
-
-1. **Add Components**: Use the CLI to add only the components you need
-   ```bash
-   npx @react-native-reusables/cli@latest add button
-   ```
-
-2. **Components Go to Your Codebase**: Files are created in `src/components/ui/`
-
-3. **Customize Freely**: Edit the component files directly to match your needs
-
-4. **Consistent Theming**: All components automatically work with your theme via NativeWind
-
-### Included Components
-
-This boilerplate comes pre-configured with:
-- Button (with variants)
-- Badge
-- Card
-- Alert Dialog
-- Switch
-- Toggle
-- Dropdown Menu
-- Separator
-- Icon (Lucide)
-- Text
-
-Add more components as needed using the CLI!
-
-## 📁 Project Structure
-
-```
-hades/
-├── src/
-│   ├── app/                      # Expo Router pages
-│   │   ├── _layout.tsx          # Root layout with providers
-│   │   └── home/
-│   │       └── index.tsx        # Main home screen with component showcase
-│   ├── components/
-│   │   ├── ui/                  # Reusable UI components
-│   │   │   ├── alert-dialog.tsx
-│   │   │   ├── badge.tsx
-│   │   │   ├── button.tsx
-│   │   │   ├── card.tsx
-│   │   │   ├── chart.tsx        # Chart components (Line, Bar, Area)
-│   │   │   ├── dropdown-menu.tsx
-│   │   │   ├── icon.tsx
-│   │   │   ├── separator.tsx
-│   │   │   ├── switch.tsx
-│   │   │   ├── text.tsx
-│   │   │   └── toggle.tsx
-│   │   ├── language-switcher.tsx
-│   │   ├── screen-container.tsx
-│   │   └── theme-switcher.tsx
-│   ├── hooks/
-│   │   └── use-color-scheme.ts  # Theme hook
-│   ├── lib/
-│   │   ├── i18n.ts              # i18next configuration
-│   │   ├── icons/               # Icon utilities
-│   │   ├── storage.ts           # MMKV storage wrappers
-│   │   ├── theme.ts             # Navigation theme configuration
-│   │   └── theme-context.tsx    # Theme provider
-│   ├── locales/                 # Translation files
-│   │   ├── en.json
-│   │   └── sl.json
-│   └── global.css               # Global styles & theme variables
-├── assets/                      # Images, fonts, icons
-├── app.json                     # Expo configuration
-├── metro.config.js              # Metro bundler config with NativeWind
-├── tailwind.config.js           # Tailwind configuration
-└── tsconfig.json                # TypeScript configuration
-```
-
-## 🎨 Theming
-
-### Customizing Colors
-Edit `src/global.css` to customize the theme colors. All colors use CSS variables and automatically adapt to dark mode when the `.dark` class is applied.
-
-## 🛠️ Setup & Installation
-
-### Prerequisites
-- Node.js 18+ and npm
-- Expo CLI
-- iOS Simulator (macOS) or Android Emulator
-
-### Installation
-
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm start
-```
-
-### Building Development Builds
-
-This boilerplate includes a custom build script that provides an interactive CLI for creating development and production builds locally or via EAS.
-
-```bash
-# Run the interactive build script
-npm run build
-```
-
-The script will prompt you to select:
-
-1. **Platform**: Choose between iOS or Android
-2. **Build Profile**: Select development (or ios-simulator if using simulator on mac)
-3. **Build Location**: Choose local build or EAS (cloud build)
-
-**Example: Local Development Build for iOS Simulator**
-```bash
-npm run build
-# Selections: [ios, ios-simulator, local]
-```
-
-**Example: Local Development Build for Android**
-```bash
-npm run build
-# Selections: [android, development, local]
-```
-
-#### Build Profiles
-
-The project includes several pre-configured build profiles (see `eas.json`):
-
-- **development**: Development build with debugging enabled
-- **preview**: Internal testing build
-- **production**: Production-ready build for app stores
-- **ios-simulator**: iOS build optimized for simulator (local only)
-
-#### Local vs EAS Builds
-
-**Local Builds:**
-- Faster iteration
-- No internet required after initial setup
-- Outputs to `builds/` directory
-- Requires proper development environment setup (Xcode for iOS, Android Studio for Android)
-
-**EAS Builds:**
-- Build in the cloud
-- No local development environment needed
-- Accessible from EAS dashboard
-- Supports building iOS apps on non-Mac machines
-
-### Adding New Components with React Native Reusables
-
-This boilerplate uses [React Native Reusables](https://rnr-docs.vercel.app), which provides a CLI to easily add more pre-built components. All components are:
-- Built with shadcn/ui design principles
-- Fully typed with TypeScript
-- Customizable with Tailwind classes
-- Accessible and following best practices
-- Consistent with the existing UI components
-
-Use the CLI to add more components:
-
-```bash
-npx @react-native-reusables/cli@latest add [component-name]
-```
-
-**Available components:**
-- **Forms**: checkbox, input, label, radio-group, select, slider, textarea
-- **Feedback**: toast, progress, skeleton, avatar
-- **Layout**: tabs, accordion, collapsible, aspect-ratio
-- **Overlays**: dialog, sheet, popover, hover-card, context-menu
-- **Data Display**: table, tooltip
-- And many more!
-
-Visit the [React Native Reusables documentation](https://rnr-docs.vercel.app) for a complete list and examples.
-
-## 📦 Key Dependencies
-
-### UI & Styling
-- `nativewind` - Tailwind CSS for React Native
-- `react-native-reanimated` - Animation library
-- `@rn-primitives/*` - Headless UI primitives (used by React Native Reusables)
-- `@react-native-reusables/cli` - CLI for adding shadcn/ui style components
-- `lucide-react-native` - Icon library
-
-### Charts & Data Visualization
-- `victory-native` - Chart library
-- `@shopify/react-native-skia` - High-performance graphics
-
-### Navigation & Routing
-- `expo-router` - File-based routing
-- `@react-navigation/native` - Navigation infrastructure
-
-### Internationalization
-- `react-i18next` - i18n framework
-- `i18next` - Translation management
-- `expo-localization` - System locale detection
-
-### Storage
-- `react-native-mmkv` - Fast key-value storage
-
-### Development
-- `typescript` - Type safety
-- `@expo/metro-config` - Metro bundler configuration
-
-## 🎯 Usage Examples
-
-### Using Theme Colors
-
-```tsx
-import { Text } from '@/components/ui/text';
-import { Button } from '@/components/ui/button';
-
-function MyComponent() {
-  return (
-    <View className="bg-background p-4">
-      <Text className="text-foreground text-lg">Hello World</Text>
-      <Button variant="primary">
-        <Text>Click Me</Text>
-      </Button>
-    </View>
-  );
-}
-```
-
-### Creating Charts
-
-```tsx
-import { ChartLine } from '@/components/ui/chart';
-
-const data = [
-  { x: 'Jan', y: 100 },
-  { x: 'Feb', y: 150 },
-  { x: 'Mar', y: 200 },
-];
-
-function MyChart() {
-  return <ChartLine data={data} height={200} />;
-}
-```
-
-### Adding Translations
-
-1. Add keys to `src/locales/en.json` and `src/locales/sl.json`
-2. Use in components:
-
-```tsx
-import { useTranslation } from 'react-i18next';
-
-function MyComponent() {
-  const { t } = useTranslation();
-  return <Text>{t('myKey')}</Text>;
-}
-```
-
-### Using Storage
-
-```tsx
-import { getFromLocalStorage, setInLocalStorage, STORAGE_KEYS } from '@/lib/storage';
-
-// Save data
-setInLocalStorage(STORAGE_KEYS.THEME, 'dark');
-
-// Retrieve data
-const theme = getFromLocalStorage<string>(STORAGE_KEYS.THEME);
-```
-
-## 🚢 Building for Production
-
-This project uses the custom build script (`npm run build`) for creating production builds. The script provides an interactive CLI that guides you through the build process.
-
-### iOS Production Build
-
-**Option 1: Local Build** (Requires macOS with Xcode)
-```bash
-# Create production build
-npm run build
-# selections: [ios, production, local]
-# Output: builds/production-hades.ipa
-
-# Submit to App Store
-eas submit --platform ios
-# Choose local binary option and paste path from build output
-```
-
-**Option 2: EAS Build** (Cloud build, works on any OS)
-```bash
-npm run build
-# Selections: [ios, production, eas]
-
-# Submit to App Store (after build completes)
-eas submit --platform ios
-```
-
-### Android
-
-**Option 1: Local Build** (Requires Android Studio setup)
-```bash
-# Create production build
-npm run build
-# selections: [android, production, local]
-
-# Submit to Play Store
-eas submit --platform android
-# Choose local binary option and paste path from build output
-```
-
-**Option 2: EAS Build** (Cloud build, works on any OS)
-```bash
-npm run build
-# Selections: [android, production, eas]
-
-# Submit to Play Store (after build completes)
-eas submit --platform android
-```
-
-### Build Output Location
-
-Local builds are saved to the `builds/` directory with the naming format:
-- `builds/{profile}-{app-slug}.{extension}`
-- Examples:
-  - `builds/production-hades.ipa` (iOS production)
-  - `builds/development-hades.apk` (Android development)
-  - `builds/ios-simulator-hades.tar.gz` (iOS simulator)
-
-## 📝 Configuration Files
-
-### `app.json`
-Main Expo configuration file. Configure app name, bundle identifiers, icons, splash screens, and plugins here.
-
-### `metro.config.js`
-Metro bundler configuration with NativeWind integration. The `input` path points to `src/global.css`.
-
-### `tailwind.config.js`
-Tailwind CSS configuration with:
-- Dark mode: 'class' strategy
-- Custom color scheme from CSS variables
-- Border radius utilities
-- Content paths for all source files
-
-### `tsconfig.json`
-TypeScript configuration with path aliases (@/*) and strict type checking.
-
-## 🔧 Common Tasks
-
-### Adding a New Screen
-
-1. Create file in `src/app/` (e.g., `src/app/profile.tsx`)
-2. Export a component
-3. Navigate using `<Link href="/profile">` or `router.push('/profile')`
-
-### Adding a New Storage Key
-
-```typescript
-// In src/lib/storage.ts
-export const STORAGE_KEYS = {
-  LANGUAGE: "app_language",
-  THEME: "app_theme",
-  YOUR_KEY: "your_key", // Add here
-}
-```
-
-### Customizing Components
-
-All UI components accept a `className` prop for custom styling:
-
-```tsx
-<Button className="bg-red-500 px-8">
-  <Text>Custom Button</Text>
-</Button>
-```
-
-## 📱 Device Testing
-
-The boilerplate is optimized for:
-- ✅ iOS (iPhone & iPad)
-- ✅ Android (Phone & Tablet)
-- ✅ Web (responsive design)
-- ✅ Dark mode on all platforms
-- ✅ RTL language support ready
-
-## 🤝 Contributing
-
-This is a boilerplate project. Fork it, customize it, and make it your own!
-
-## 📄 License
-
-MIT License - feel free to use this for personal or commercial projects.
-
-## 🙏 Credits
-
-Built with:
-- [Expo](https://expo.dev)
-- [React Native](https://reactnative.dev)
-- [NativeWind](https://www.nativewind.dev)
-- [shadcn/ui](https://ui.shadcn.com) design inspiration
-- [React Native Reusables](https://rnr-docs.vercel.app)
+This project is intentionally opinionated and built on top of `hades-expo-boilerplate`, but reshaped into a concrete app rather than a generic starter.
 
 ---
 
-**Made with ❤️ for the React Native community**
+## Stack
+
+- **React Native / Expo** (Expo Router)
+- **TypeScript**
+- **NativeWind** for Tailwind-style styling
+- **React Native Reusables** UI components (shadcn-style) already copied into `src/components/ui`
+- **Zustand** for assistant state management
+- **TanStack Query** with **MMKV-persisted cache** for future data flows
+- **MMKV** for local storage
+- **ElevenLabs** via `@elevenlabs/react-native` SDK for text-to-speech
+
+---
+
+## Features
+
+### 1. Assistant Home
+
+**File:** `src/app/home/index.tsx`
+
+The home screen is where you interact with Huyang and navigate to future control screens.
+
+Includes:
+
+- **Language & theme switching**
+  - `LanguageSwitcher` and `ThemeSwitcher` components.
+- **Voice chat with Huyang**
+  - `VoiceChat` component:
+    - Speak button with distinct **user** vs **assistant** indicators.
+    - Manual text input + send.
+    - Conversation preview with styled bubbles (user vs assistant).
+    - Uses Zustand store for interaction state.
+- **Control center cards**
+  - Card to open **Smart Home** screen.
+  - Card to open **Servers** screen.
+- Demo UI sections (buttons, badges, cards, toggles, dropdown, alert-dialog) kept from the boilerplate as examples.
+
+### 2. Smart Home Screen
+
+**File:** `src/app/smart-home/index.tsx`
+
+A stub UI that will later be wired into Home Assistant / your own infra. Right now it provides structured controls with proper UI:
+
+- **Lights**
+  - Living room, Bedroom, Kitchen switches with status text.
+  - "All off" button (UI only).
+- **Blinds**
+  - Preset toggles: `Open`, `Half`, `Closed`.
+  - Shows current preset.
+- **3D Printer**
+  - Online/offline switch.
+  - Current job status (Printing / Idle).
+  - "Start test" / "Pause" button.
+  - "Open print queue" button.
+
+Everything uses the same UI system (Card, Switch, Toggle, Button, Text) and NativeWind classes.
+
+### 3. Servers Screen
+
+**File:** `src/app/server/index.tsx`
+
+High-level server control UI, designed to be wired later to Dokploy/Portainer/custom APIs.
+
+- **Core stack card**
+  - Toggles for Gateway, Database, and AI node.
+  - Short descriptions for each.
+- **Actions card**
+  - Buttons for:
+    - Open logs dashboard
+    - Deploy latest tagged release
+    - Restart everything
+- **Summary card**
+  - Derived overall status (`All green` vs `Attention needed`).
+  - Explanation that this is UI only for now.
+
+---
+
+## Assistant & Voice Architecture
+
+### 1. Assistant State (Zustand)
+
+**File:** `src/lib/assistant-store.ts`
+
+Central state for the assistant UI:
+
+- Messages: `{ id, speaker: "user" | "assistant", text, createdAt }[]`
+- Flags:
+  - `isListening`
+  - `isSpeaking`
+  - `currentInput`
+- Actions:
+  - `startListening` / `stopListening`
+  - `setSpeaking`
+  - `setInput`
+  - `addMessage(speaker, text)`
+  - `reset()`
+
+The UI reads from this store to drive indicators and the conversation preview.
+
+### 2. ElevenLabs Integration (SDK)
+
+**File:** `src/lib/elevenlabs.ts`
+
+Uses the official `@elevenlabs/react-native` SDK instead of raw HTTP.
+
+Env variables (see `.env.example`):
+
+```env
+EXPO_PUBLIC_ELEVENLABS_API_KEY=
+EXPO_PUBLIC_ELEVENLABS_VOICE_ID=
+```
+
+Helper:
+
+```ts
+import { createClient } from "@elevenlabs/react-native";
+
+const apiKey = process.env.EXPO_PUBLIC_ELEVENLABS_API_KEY;
+const defaultVoiceId = process.env.EXPO_PUBLIC_ELEVENLABS_VOICE_ID;
+
+export const elevenLabsClient = createClient({ apiKey: apiKey ?? "" });
+
+export async function speakWithElevenLabs(text: string) {
+  if (!apiKey || !defaultVoiceId) {
+    throw new Error("ElevenLabs is not configured. Check your env vars.");
+  }
+
+  await elevenLabsClient.generate({
+    voice: defaultVoiceId,
+    text,
+  });
+}
+```
+
+### 3. VoiceChat Component
+
+**File:** `src/components/assistant/voice-chat.tsx`
+
+Key behaviors:
+
+- When you press **Send**:
+  1. User message is added to the store.
+  2. `speakWithElevenLabs(text)` is called (SDK-based TTS).
+  3. On success, an assistant message is added noting that the TTS call completed.
+  4. On failure, a friendly error message is added.
+- Mic button toggles `isListening` and updates the user indicator.
+- Assistant indicator uses `isSpeaking` and the latest message speaker.
+
+This is intentionally a shell: later, you will plug in
+- live audio streaming, and
+- the actual LLM / OpenClaw reply text
+on top of this flow.
+
+---
+
+## Data & Networking
+
+### TanStack Query + MMKV persistence
+
+**File:** `src/lib/query.ts`
+
+- Creates a `QueryClient` with sensible defaults.
+- Persists query cache into a dedicated MMKV instance (`id: "query-cache"`).
+- Integrates with React Native app lifecycle:
+  - Online/offline via `@react-native-community/netinfo` and `onlineManager`.
+  - Focus via `AppState` and `focusManager`.
+- Exposes `QueryProvider` which wraps the app in `_layout.tsx`.
+
+This is ready for when you start fetching real data for smart home devices, server status, or assistant sessions.
+
+---
+
+## Project Structure (high level)
+
+```txt
+src/
+  app/
+    _layout.tsx         # Root layout with ThemeProvider, QueryProvider, navigation
+    index.tsx           # Entry wiring into home
+    home/index.tsx      # Assistant home + control center
+    smart-home/index.tsx# Smart home control UI
+    server/index.tsx    # Server management UI
+
+  components/
+    assistant/
+      voice-chat.tsx    # Voice chat UI shell around ElevenLabs + state
+    ui/                 # shadcn-style components (button, card, etc.)
+    language-switcher.tsx
+    screen-container.tsx
+    theme-switcher.tsx
+
+  lib/
+    assistant-store.ts  # Zustand store for assistant state
+    elevenlabs.ts       # ElevenLabs SDK helper
+    query.ts            # TanStack Query + MMKV persistence
+    storage.ts          # MMKV storage helpers
+    theme.ts / theme-context.tsx
+    i18n.ts             # react-i18next setup
+
+  locales/
+    en.json
+    sl.json
+
+  global.css            # Global theme variables (light/dark)
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- Expo tooling installed
+- iOS simulator (macOS) or Android emulator / device
+
+### Setup
+
+1. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. Create a `.env` file based on `.env.example` and fill in:
+
+   ```env
+   EXPO_PUBLIC_ELEVENLABS_API_KEY=your_key_here
+   EXPO_PUBLIC_ELEVENLABS_VOICE_ID=your_voice_id_here
+   ```
+
+3. Start the app:
+
+   ```bash
+   npm start
+   # or
+   npm run android
+   # or
+   npm run ios
+   ```
+
+Then open the app in your simulator/device and go to the **Home** screen to start interacting with the assistant and explore the control center.
+
+---
+
+## Roadmap / TODOs
+
+- Hook Huyang mobile up to a real OpenClaw endpoint for:
+  - conversational replies
+  - session management
+- Replace placeholder assistant messages with real LLM output.
+- Integrate streaming audio with ElevenLabs (not just one-shot `generate`).
+- Wire Smart Home UI to Home Assistant / existing smart home stack.
+- Wire Servers UI to Dokploy/Portainer/other infra APIs.
+- Harden ElevenLabs key handling (move to backend once it exists).
