@@ -11,10 +11,23 @@ import {
 import { ThemeProvider as NavThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
 import { ElevenLabsProvider } from "@elevenlabs/react-native";
-import { Stack } from "expo-router";
+import { NativeTabs, Icon, Label, VectorIcon } from "expo-router/unstable-native-tabs";
+import createIconSet from "@expo/vector-icons/createIconSet";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { View } from "react-native";
+
+const glyphMap = {
+  bot: 0xe1bb,
+  house: 0xe0f5,
+  server: 0xe153,
+};
+
+const LucideIcon = createIconSet(
+  glyphMap,
+  "Lucide",
+  require("@/lib/assets/lucide-font/lucide.ttf"),
+);
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "../global.css";
@@ -34,6 +47,7 @@ function RootLayoutContent() {
     "JetBrains Mono": JetBrainsMono_400Regular,
     "JetBrains Mono Medium": JetBrainsMono_500Medium,
     "JetBrains Mono Bold": JetBrainsMono_700Bold,
+    Lucide: require("@/lib/assets/lucide-font/lucide.ttf"),
   });
 
   if (!fontsLoaded) {
@@ -53,9 +67,29 @@ function RootLayoutContent() {
                   : "bg-background"
               }
             >
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="home/index" />
-              </Stack>
+              <NativeTabs>
+                <NativeTabs.Trigger name="home">
+                  <Icon
+                    selectedColor={"#fda5d5"}
+                    src={<VectorIcon family={LucideIcon} name="bot" />}
+                  />
+                  <Label hidden />
+                </NativeTabs.Trigger>
+                <NativeTabs.Trigger name="smart-home">
+                  <Icon
+                    selectedColor={"#fda5d5"}
+                    src={<VectorIcon family={LucideIcon} name="house" />}
+                  />
+                  <Label hidden />
+                </NativeTabs.Trigger>
+                <NativeTabs.Trigger name="server">
+                  <Icon
+                    selectedColor={"#fda5d5"}
+                    src={<VectorIcon family={LucideIcon} name="server" />}
+                  />
+                  <Label hidden />
+                </NativeTabs.Trigger>
+              </NativeTabs>
               <StatusBar
                 style={effectiveColorScheme === "dark" ? "light" : "dark"}
                 translucent

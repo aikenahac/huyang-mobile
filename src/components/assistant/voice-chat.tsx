@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAssistantStore } from "@/lib/assistant-store";
 import { getElevenLabsAgentId } from "@/lib/elevenlabs";
 import { cn } from "@/lib/utils";
-import { Mic, MicOff, Send } from "lucide-react-native";
+import { MicIcon, MicOffIcon, SendIcon } from "@/lib/icons";
 
 export function VoiceChat() {
   const {
