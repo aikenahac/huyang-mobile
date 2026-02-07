@@ -34,7 +34,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
     <ThemeContext.Provider
       value={{
-        colorScheme: activeColorScheme ?? null,
+        colorScheme:
+          activeColorScheme !== "unspecified" && activeColorScheme
+            ? activeColorScheme
+            : null,
         themeMode,
         setColorScheme,
       }}

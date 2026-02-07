@@ -5,4 +5,4 @@ export { MicIcon } from "./mic";
 export { MicOffIcon } from "./mic-off";
 export { SendIcon } from "./send";
 export { CheckIcon } from "./check";
-
+export { KeyboardIcon } from "./keyboard";

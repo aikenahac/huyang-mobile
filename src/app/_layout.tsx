@@ -1,21 +1,24 @@
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import "@/lib/i18n";
+import { QueryProvider } from "@/lib/query";
 import { NAV_THEME } from "@/lib/theme";
 import { ThemeProvider } from "@/lib/theme-context";
-import { QueryProvider } from "@/lib/query";
+import { ElevenLabsProvider } from "@elevenlabs/react-native";
 import {
   JetBrainsMono_400Regular,
   JetBrainsMono_500Medium,
   JetBrainsMono_700Bold,
 } from "@expo-google-fonts/jetbrains-mono";
+import createIconSet from "@expo/vector-icons/createIconSet";
 import { ThemeProvider as NavThemeProvider } from "@react-navigation/native";
 import { PortalHost } from "@rn-primitives/portal";
-import { ElevenLabsProvider } from "@elevenlabs/react-native";
-import { NativeTabs, Icon, Label, VectorIcon } from "expo-router/unstable-native-tabs";
-import createIconSet from "@expo/vector-icons/createIconSet";
-import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
+import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
+import "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import "../global.css";
 
 const glyphMap = {
   bot: 0xe1bb,
@@ -23,14 +26,11 @@ const glyphMap = {
   server: 0xe153,
 };
 
-const LucideIcon = createIconSet(
+const LucideIcons = createIconSet(
   glyphMap,
   "Lucide",
   require("@/lib/assets/lucide-font/lucide.ttf"),
 );
-import "react-native-reanimated";
-import { SafeAreaProvider } from "react-native-safe-area-context";
-import "../global.css";
 
 export default function RootLayout() {
   return (
@@ -68,26 +68,44 @@ function RootLayoutContent() {
               }
             >
               <NativeTabs>
-                <NativeTabs.Trigger name="home">
-                  <Icon
+                <NativeTabs.Trigger name="index">
+                  <NativeTabs.Trigger.Icon
                     selectedColor={"#fda5d5"}
-                    src={<VectorIcon family={LucideIcon} name="bot" />}
+                    md="smart_toy"
+                    src={
+                      <NativeTabs.Trigger.VectorIcon
+                        family={LucideIcons}
+                        name="bot"
+                      />
+                    }
                   />
-                  <Label hidden />
+                  <NativeTabs.Trigger.Label>Assistant</NativeTabs.Trigger.Label>
                 </NativeTabs.Trigger>
-                <NativeTabs.Trigger name="smart-home">
-                  <Icon
+                <NativeTabs.Trigger name="smart-home/index">
+                  <NativeTabs.Trigger.Icon
                     selectedColor={"#fda5d5"}
-                    src={<VectorIcon family={LucideIcon} name="house" />}
+                    md="home"
+                    src={
+                      <NativeTabs.Trigger.VectorIcon
+                        family={LucideIcons}
+                        name="house"
+                      />
+                    }
                   />
-                  <Label hidden />
+                  <NativeTabs.Trigger.Label>Smart Home</NativeTabs.Trigger.Label>
                 </NativeTabs.Trigger>
-                <NativeTabs.Trigger name="server">
-                  <Icon
+                <NativeTabs.Trigger name="server/index">
+                  <NativeTabs.Trigger.Icon
                     selectedColor={"#fda5d5"}
-                    src={<VectorIcon family={LucideIcon} name="server" />}
+                    md="dns"
+                    src={
+                      <NativeTabs.Trigger.VectorIcon
+                        family={LucideIcons}
+                        name="server"
+                      />
+                    }
                   />
-                  <Label hidden />
+                  <NativeTabs.Trigger.Label>Server</NativeTabs.Trigger.Label>
                 </NativeTabs.Trigger>
               </NativeTabs>
               <StatusBar

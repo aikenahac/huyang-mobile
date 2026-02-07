@@ -1,12 +1,33 @@
-import { useMemo, useRef, useState } from "react";
-import { Text, View, TextInput, TouchableOpacity } from "react-native";
-import { useConversation } from "@elevenlabs/react-native";
-import { Icon } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
+import { Icon } from "@/components/ui/icon";
+import { Text } from "@/components/ui/text";
 import { useAssistantStore } from "@/lib/assistant-store";
 import { getElevenLabsAgentId } from "@/lib/elevenlabs";
+import { KeyboardIcon, SendIcon } from "@/lib/icons";
 import { cn } from "@/lib/utils";
-import { MicIcon, MicOffIcon, SendIcon } from "@/lib/icons";
+import { UnstableSiriOrb } from "@/shared/ui/organisms/unstable_siri_orb";
+import { useConversation } from "@elevenlabs/react-native";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useWindowDimensions,
+} from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+const MAX_VISIBLE_MESSAGES = 14;
 
 export function VoiceChat() {
   const {
@@ -20,24 +41,36 @@ export function VoiceChat() {
     setInput,
     addMessage,
   } = useAssistantStore();
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+
   const pendingMessageRef = useRef<string | null>(null);
+  const lastSentTextRef = useRef<string | null>(null);
+  const transcriptScrollRef = useRef<ScrollView | null>(null);
+
   const [isSessionBusy, setIsSessionBusy] = useState(false);
+  const [isTextMode, setIsTextMode] = useState(false);
+
+  const orbEnterProgress = useSharedValue(0);
+  const orbBreatheScale = useSharedValue(1);
 
   const conversation = useConversation({
     onModeChange: ({ mode }) => {
-      if (mode === "speaking") {
-        setSpeaking(true);
+      const assistantSpeaking = mode === "speaking";
+      setSpeaking(assistantSpeaking);
+
+      if (assistantSpeaking) {
         stopListening();
         return;
       }
 
-      setSpeaking(false);
       startListening();
     },
     onStatusChange: ({ status }) => {
       if (status === "connected") {
         startListening();
         const pendingMessage = pendingMessageRef.current;
+
         if (pendingMessage) {
           pendingMessageRef.current = null;
           try {
@@ -46,7 +79,7 @@ export function VoiceChat() {
             console.error("ElevenLabs pending message failed", error);
             addMessage(
               "assistant",
-              "I connected, but couldn't send your last message.",
+              "I connected, but could not send your last message.",
             );
           }
         }
@@ -57,22 +90,88 @@ export function VoiceChat() {
       setSpeaking(false);
     },
     onMessage: ({ message, source, role }) => {
-      const speaker = source ?? role;
-      if (speaker === "ai") {
-        addMessage("assistant", message);
+      const text = message.trim();
+      if (!text) return;
+
+      const sourceName = String(source ?? "");
+      const roleName = String(role ?? "");
+
+      if (sourceName === "ai" || roleName === "assistant") {
+        addMessage("assistant", text);
+        return;
+      }
+
+      if (sourceName === "user" || roleName === "user") {
+        if (lastSentTextRef.current === text.toLowerCase()) {
+          lastSentTextRef.current = null;
+          return;
+        }
+        addMessage("user", text);
       }
     },
     onError: (message, context) => {
       console.error("ElevenLabs conversation failed", message, context);
       addMessage(
         "assistant",
-        "I couldn't connect to ElevenLabs. Please check the agent setup.",
+        "I could not connect to ElevenLabs. Please check the agent setup.",
       );
     },
   });
 
   const isConnected = conversation.status === "connected";
   const isConnecting = conversation.status === "connecting";
+  const isUserTurn = isConnected && isListening && !isSpeaking;
+
+  const orbSize = Math.min(Math.max(width * 0.58, 190), 250);
+
+  const transcriptMessages = useMemo(
+    () => messages.slice(-MAX_VISIBLE_MESSAGES),
+    [messages],
+  );
+
+  const liveStatusText = useMemo(() => {
+    if (isConnecting || isSessionBusy) return "Connecting to Huyang...";
+    if (isSpeaking) return "Huyang is speaking";
+    if (isUserTurn) return "Listening for your voice";
+    if (isConnected) return "Voice mode ready";
+    return "Tap the orb to start voice mode";
+  }, [isConnected, isConnecting, isSessionBusy, isSpeaking, isUserTurn]);
+
+  useEffect(() => {
+    orbEnterProgress.value = withTiming(1, {
+      duration: 650,
+      easing: Easing.out(Easing.cubic),
+    });
+
+    orbBreatheScale.value = withDelay(
+      240,
+      withRepeat(
+        withTiming(1.035, {
+          duration: 2200,
+          easing: Easing.inOut(Easing.quad),
+        }),
+        -1,
+        true,
+      ),
+    );
+  }, [orbBreatheScale, orbEnterProgress]);
+
+  useEffect(() => {
+    if (isConnected || isConnecting || isListening || isSpeaking) {
+      setIsTextMode(false);
+    }
+  }, [isConnected, isConnecting, isListening, isSpeaking]);
+
+  const orbShellAnimatedStyle = useAnimatedStyle(() => {
+    const baseScale = 0.94 + orbEnterProgress.value * 0.06;
+    return {
+      opacity: orbEnterProgress.value,
+      transform: [
+        { scale: baseScale * orbBreatheScale.value },
+        { translateY: (1 - orbEnterProgress.value) * 10 },
+      ],
+    };
+  });
 
   async function ensureSession(): Promise<boolean> {
     if (isConnected) return true;
@@ -90,7 +189,7 @@ export function VoiceChat() {
       console.error("ElevenLabs session failed", error);
       addMessage(
         "assistant",
-        "I couldn't start the voice session. Check your agent ID and build.",
+        "I could not start the voice session. Check your agent ID and build.",
       );
       stopListening();
       setSpeaking(false);
@@ -100,14 +199,7 @@ export function VoiceChat() {
     }
   }
 
-  const hasMessages = messages.length > 0;
-
-  const latestSpeaker = useMemo(
-    () => (messages.length ? messages[messages.length - 1].speaker : null),
-    [messages],
-  );
-
-  async function handleToggleSpeak() {
+  async function handleToggleVoiceMode() {
     if (isSessionBusy) return;
 
     if (isConnected) {
@@ -126,6 +218,7 @@ export function VoiceChat() {
     if (!currentInput.trim()) return;
 
     const text = currentInput.trim();
+    lastSentTextRef.current = text.toLowerCase();
     addMessage("user", text);
     setInput("");
 
@@ -142,163 +235,173 @@ export function VoiceChat() {
     } catch (error) {
       console.error("ElevenLabs message failed", error);
       pendingMessageRef.current = null;
-      addMessage(
-        "assistant",
-        "I couldn't send your message to ElevenLabs.",
-      );
+      lastSentTextRef.current = null;
+      addMessage("assistant", "I could not send your message to ElevenLabs.");
     }
   }
 
   return (
-    <View className="gap-4">
-      <View className="gap-2">
-        <Text className="text-xl font-semibold text-foreground">
-          Talk to Huyang
-        </Text>
-        <Text className="text-muted-foreground text-sm">
-          Start a session with Speak, then talk or type to your ElevenLabs
-          agent.
-        </Text>
-      </View>
-
-      {/* Activity indicators */}
-      <View className="flex-row gap-3">
-        {/* User indicator */}
-        <View className="flex-1 flex-row items-center gap-3 rounded-2xl bg-primary/5 px-3 py-2">
-          <View className="h-3 w-3 rounded-full bg-primary" />
-          <View className="flex-1">
-            <Text className="text-xs font-medium text-foreground uppercase tracking-wide">
-              You
+    <KeyboardAvoidingView
+      className="flex-1"
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <View className="flex-1 gap-4" style={{ paddingBottom: insets.bottom }}>
+        <View className="flex-1 rounded-3xl border border-border/70 bg-card/70 px-3 py-4">
+          <View className="mb-3 flex-row items-center justify-between px-1">
+            <Text className="text-base font-semibold text-foreground">
+              Live transcription
             </Text>
-            <Text className="text-xs text-muted-foreground">
-              {isConnected
-                ? isListening
-                  ? "Listening..."
-                  : "Connected"
-                : isConnecting || isSessionBusy
-                  ? "Connecting..."
-                  : "Tap Speak to connect"}
+            <Text
+              className={cn(
+                "text-xs font-medium uppercase tracking-wide",
+                isConnected ? "text-primary" : "text-muted-foreground",
+              )}
+            >
+              {isConnected ? "Live" : "Idle"}
             </Text>
           </View>
+
+          {transcriptMessages.length ? (
+            <ScrollView
+              ref={transcriptScrollRef}
+              className="flex-1"
+              contentContainerStyle={{ gap: 12, paddingBottom: 8 }}
+              showsVerticalScrollIndicator={false}
+              onContentSizeChange={() => {
+                transcriptScrollRef.current?.scrollToEnd({ animated: true });
+              }}
+            >
+              {transcriptMessages.map((message) => {
+                const isUser = message.speaker === "user";
+                return (
+                  <View
+                    key={message.id}
+                    className={cn(
+                      "max-w-[90%] rounded-3xl border px-4 py-3",
+                      isUser
+                        ? "self-end border-primary/30 bg-primary"
+                        : "self-start border-border/80 bg-secondary/20",
+                    )}
+                  >
+                    <Text
+                      className={cn(
+                        "mb-1 text-[11px] font-semibold uppercase tracking-wide",
+                        isUser
+                          ? "text-primary-foreground/85"
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {isUser ? "You" : "Huyang"}
+                    </Text>
+                    <Text
+                      className={cn(
+                        "text-sm leading-6",
+                        isUser ? "text-primary-foreground" : "text-foreground",
+                      )}
+                    >
+                      {message.text}
+                    </Text>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          ) : (
+            <View className="flex-1 items-center justify-center px-4">
+              <Text className="text-center text-sm text-muted-foreground">
+                Start talking and your conversation transcript will appear here.
+              </Text>
+            </View>
+          )}
         </View>
 
-        {/* Assistant indicator */}
-        <View className="flex-1 flex-row items-center gap-3 rounded-2xl bg-secondary/10 px-3 py-2">
-          <View
-            className={cn(
-              "h-3 w-3 rounded-full bg-secondary",
-              isSpeaking && "animate-pulse",
-            )}
-          />
-          <View className="flex-1">
-            <Text className="text-xs font-medium text-foreground uppercase tracking-wide">
-              Huyang
-            </Text>
-            <Text className="text-xs text-muted-foreground">
-              {isSpeaking
-                ? "Speaking..."
-                : latestSpeaker === "assistant"
-                  ? "Waiting for your reply"
-                  : isConnected
-                    ? "Ready"
-                    : isConnecting || isSessionBusy
-                      ? "Connecting..."
-                    : "Offline"}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      {/* Conversation preview */}
-      <View className="max-h-64 rounded-2xl border border-border bg-card/60 p-3">
-        {hasMessages ? (
-          <View className="gap-2">
-            {messages.slice(-6).map((message) => (
-              <View
-                key={message.id}
-                className={cn(
-                  "max-w-[90%] rounded-2xl px-3 py-2",
-                  message.speaker === "user"
-                    ? "self-end bg-primary"
-                    : "self-start bg-secondary/20",
-                )}
-              >
-                <Text
-                  className={cn(
-                    "text-xs font-medium mb-1",
-                    message.speaker === "user"
-                      ? "text-primary-foreground"
-                      : "text-secondary-foreground",
-                  )}
-                >
-                  {message.speaker === "user" ? "You" : "Huyang"}
-                </Text>
-                <Text
-                  className={
-                    message.speaker === "user"
-                      ? "text-primary-foreground"
-                      : "text-foreground"
-                  }
-                >
-                  {message.text}
-                </Text>
-              </View>
-            ))}
-          </View>
-        ) : (
-          <View className="flex-1 items-center justify-center py-6">
-            <Text className="text-xs text-muted-foreground">
-              Your conversation with Huyang will appear here.
-            </Text>
-          </View>
-        )}
-      </View>
-
-      {/* Text input + speak button */}
-      <View className="flex-row items-end gap-3">
-        <View className="flex-1 rounded-2xl border border-border bg-background px-3 py-2">
-          <Text className="text-xs text-muted-foreground mb-1">
-            Type a message
-          </Text>
-          <TextInput
-            value={currentInput}
-            onChangeText={setInput}
-            placeholder="Ask anything…"
-            placeholderTextColor="#9CA3AF"
-            multiline
-            className="text-sm text-foreground max-h-24"
-          />
-        </View>
-
-        <View className="gap-2 items-center">
-          <Button
-            size="icon"
-            className={cn(
-              "h-12 w-12 rounded-full bg-primary",
-              isConnected && "bg-primary/80",
-              (isConnecting || isSessionBusy) && "bg-primary/60",
-            )}
-            onPress={handleToggleSpeak}
-            disabled={isSessionBusy}
-          >
-            <Icon
-              as={isConnected ? MicOff : Mic}
-              className="text-primary-foreground"
-              size={18}
-            />
-          </Button>
-
+        <View className="items-center gap-3 pb-1">
           <TouchableOpacity
-            onPress={handleSendText}
-            className="flex-row items-center justify-center gap-1"
+            activeOpacity={0.9}
+            disabled={isSessionBusy}
+            onPress={handleToggleVoiceMode}
+            accessibilityRole="button"
+            accessibilityLabel="Toggle voice mode"
           >
-            <Icon as={Send} size={14} className="text-primary" />
-            <Text className="text-xs font-medium text-primary">
-              Send
-            </Text>
+            <Animated.View
+              style={orbShellAnimatedStyle}
+              className={cn(
+                "items-center justify-center rounded-full border border-border/70 bg-background p-2",
+                isUserTurn && "border-primary/60",
+                isSpeaking && "border-secondary/70",
+              )}
+            >
+              <UnstableSiriOrb
+                size={orbSize}
+                speed={isUserTurn ? 1.75 : isSpeaking ? 1.35 : 1}
+                noiseIntensity={isUserTurn ? 1.3 : 0.95}
+                glowIntensity={isUserTurn ? 2.2 : isSpeaking ? 1.95 : 1.45}
+                rotationSpeed={isSpeaking ? 1.5 : 1}
+                brightness={isUserTurn ? 1.12 : 1}
+                saturation={2.15}
+                primaryColor={
+                  isUserTurn
+                    ? { r: 0.31, g: 0.73, b: 1.0 }
+                    : { r: 0.56, g: 0.42, b: 1.0 }
+                }
+                secondaryColor={
+                  isSpeaking
+                    ? { r: 1.0, g: 0.42, b: 0.66 }
+                    : { r: 0.0, g: 0.79, b: 0.87 }
+                }
+              />
+            </Animated.View>
           </TouchableOpacity>
+
+          <Text className="text-sm font-medium text-muted-foreground">
+            {liveStatusText}
+          </Text>
+
+          <View className="w-full flex-row items-center justify-start gap-2">
+            <Button
+              variant={isTextMode ? "secondary" : "outline"}
+              size="icon"
+              onPress={() => setIsTextMode((value) => !value)}
+            >
+              <Icon
+                as={KeyboardIcon}
+                size={18}
+                className={
+                  isTextMode ? "text-secondary-foreground" : "text-foreground"
+                }
+              />
+            </Button>
+
+            {isTextMode ? (
+              <>
+                <View className="h-12 flex-1 justify-center rounded-2xl border border-border bg-background px-3">
+                  <TextInput
+                    value={currentInput}
+                    onChangeText={setInput}
+                    editable
+                    multiline={false}
+                    placeholder="Type a message"
+                    placeholderTextColor="#94A3B8"
+                    style={{ textAlignVertical: "center", paddingVertical: 0 }}
+                    className="h-10 text-sm text-foreground"
+                  />
+                </View>
+
+                <Button
+                  size="icon"
+                  onPress={handleSendText}
+                  disabled={!currentInput.trim() || isSessionBusy}
+                >
+                  <Icon
+                    as={SendIcon}
+                    size={16}
+                    className="text-primary-foreground"
+                  />
+                </Button>
+              </>
+            ) : null}
+          </View>
         </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
