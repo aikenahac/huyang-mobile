@@ -154,9 +154,10 @@ Key behaviors:
 - Assistant indicator uses `isSpeaking` and the latest message speaker.
 
 This is intentionally a shell: later, you will plug in
+
 - live audio streaming, and
 - the actual LLM / OpenClaw reply text
-on top of this flow.
+  on top of this flow.
 
 ---
 
@@ -164,7 +165,7 @@ on top of this flow.
 
 ### TanStack Query + MMKV persistence
 
-**File:** `src/lib/query.ts`
+**File:** `src/lib/query.tsx`
 
 - Creates a `QueryClient` with sensible defaults.
 - Persists query cache into a dedicated MMKV instance (`id: "query-cache"`).
@@ -199,7 +200,7 @@ src/
   lib/
     assistant-store.ts  # Zustand store for assistant state
     elevenlabs.ts       # ElevenLabs SDK helper
-    query.ts            # TanStack Query + MMKV persistence
+    query.tsx            # TanStack Query + MMKV persistence
     storage.ts          # MMKV storage helpers
     theme.ts / theme-context.tsx
     i18n.ts             # react-i18next setup

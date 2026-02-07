@@ -1,11 +1,12 @@
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Text, View, TextInput, TouchableOpacity } from "react-native";
+import { useConversation } from "@elevenlabs/react-native";
 import { Icon } from "@/components/ui/icon";
 import { Button } from "@/components/ui/button";
 import { useAssistantStore } from "@/lib/assistant-store";
+import { getElevenLabsAgentId } from "@/lib/elevenlabs";
 import { cn } from "@/lib/utils";
 import { Mic, MicOff, Send } from "lucide-react-native";
-import { speakWithElevenLabs } from "@/lib/elevenlabs";
 
 export function VoiceChat() {
   const {
@@ -19,6 +20,85 @@ export function VoiceChat() {
     setInput,
     addMessage,
   } = useAssistantStore();
+  const pendingMessageRef = useRef<string | null>(null);
+  const [isSessionBusy, setIsSessionBusy] = useState(false);
+
+  const conversation = useConversation({
+    onModeChange: ({ mode }) => {
+      if (mode === "speaking") {
+        setSpeaking(true);
+        stopListening();
+        return;
+      }
+
+      setSpeaking(false);
+      startListening();
+    },
+    onStatusChange: ({ status }) => {
+      if (status === "connected") {
+        startListening();
+        const pendingMessage = pendingMessageRef.current;
+        if (pendingMessage) {
+          pendingMessageRef.current = null;
+          try {
+            conversation.sendUserMessage(pendingMessage);
+          } catch (error) {
+            console.error("ElevenLabs pending message failed", error);
+            addMessage(
+              "assistant",
+              "I connected, but couldn't send your last message.",
+            );
+          }
+        }
+        return;
+      }
+
+      stopListening();
+      setSpeaking(false);
+    },
+    onMessage: ({ message, source, role }) => {
+      const speaker = source ?? role;
+      if (speaker === "ai") {
+        addMessage("assistant", message);
+      }
+    },
+    onError: (message, context) => {
+      console.error("ElevenLabs conversation failed", message, context);
+      addMessage(
+        "assistant",
+        "I couldn't connect to ElevenLabs. Please check the agent setup.",
+      );
+    },
+  });
+
+  const isConnected = conversation.status === "connected";
+  const isConnecting = conversation.status === "connecting";
+
+  async function ensureSession(): Promise<boolean> {
+    if (isConnected) return true;
+    if (isConnecting || isSessionBusy) return false;
+
+    setIsSessionBusy(true);
+    try {
+      const agentId = getElevenLabsAgentId();
+      await conversation.startSession({
+        agentId,
+        userId: "huyang-mobile",
+      });
+      return true;
+    } catch (error) {
+      console.error("ElevenLabs session failed", error);
+      addMessage(
+        "assistant",
+        "I couldn't start the voice session. Check your agent ID and build.",
+      );
+      stopListening();
+      setSpeaking(false);
+      return false;
+    } finally {
+      setIsSessionBusy(false);
+    }
+  }
 
   const hasMessages = messages.length > 0;
 
@@ -27,12 +107,19 @@ export function VoiceChat() {
     [messages],
   );
 
-  function handleToggleSpeak() {
-    if (isListening) {
-      stopListening();
-    } else {
-      startListening();
+  async function handleToggleSpeak() {
+    if (isSessionBusy) return;
+
+    if (isConnected) {
+      try {
+        await conversation.endSession();
+      } catch (error) {
+        console.error("ElevenLabs end session failed", error);
+      }
+      return;
     }
+
+    await ensureSession();
   }
 
   async function handleSendText() {
@@ -42,23 +129,23 @@ export function VoiceChat() {
     addMessage("user", text);
     setInput("");
 
-    setSpeaking(true);
     try {
-      await speakWithElevenLabs(text);
-      // For now we only synthesize audio; you can plug in
-      // the actual OpenClaw / LLM reply here later.
-      addMessage(
-        "assistant",
-        "(ElevenLabs TTS call completed – wire playback and assistant reply here.)",
-      );
+      if (!isConnected) {
+        pendingMessageRef.current = text;
+        const didStart = await ensureSession();
+        if (!didStart) {
+          return;
+        }
+      } else {
+        conversation.sendUserMessage(text);
+      }
     } catch (error) {
-      console.error("ElevenLabs TTS failed", error);
+      console.error("ElevenLabs message failed", error);
+      pendingMessageRef.current = null;
       addMessage(
         "assistant",
-        "I couldn't speak just now because the ElevenLabs call failed.",
+        "I couldn't send your message to ElevenLabs.",
       );
-    } finally {
-      setSpeaking(false);
     }
   }
 
@@ -69,8 +156,8 @@ export function VoiceChat() {
           Talk to Huyang
         </Text>
         <Text className="text-muted-foreground text-sm">
-          Use the speak button for voice, or type below. ElevenLabs wiring
-          will plug into this shell.
+          Start a session with Speak, then talk or type to your ElevenLabs
+          agent.
         </Text>
       </View>
 
@@ -84,7 +171,13 @@ export function VoiceChat() {
               You
             </Text>
             <Text className="text-xs text-muted-foreground">
-              {isListening ? "Listening…" : "Tap Speak to start talking"}
+              {isConnected
+                ? isListening
+                  ? "Listening..."
+                  : "Connected"
+                : isConnecting || isSessionBusy
+                  ? "Connecting..."
+                  : "Tap Speak to connect"}
             </Text>
           </View>
         </View>
@@ -103,10 +196,14 @@ export function VoiceChat() {
             </Text>
             <Text className="text-xs text-muted-foreground">
               {isSpeaking
-                ? "Speaking…"
+                ? "Speaking..."
                 : latestSpeaker === "assistant"
                   ? "Waiting for your reply"
-                  : "Ready"}
+                  : isConnected
+                    ? "Ready"
+                    : isConnecting || isSessionBusy
+                      ? "Connecting..."
+                    : "Offline"}
             </Text>
           </View>
         </View>
@@ -178,12 +275,14 @@ export function VoiceChat() {
             size="icon"
             className={cn(
               "h-12 w-12 rounded-full bg-primary",
-              isListening && "bg-primary/80",
+              isConnected && "bg-primary/80",
+              (isConnecting || isSessionBusy) && "bg-primary/60",
             )}
             onPress={handleToggleSpeak}
+            disabled={isSessionBusy}
           >
             <Icon
-              as={isListening ? MicOff : Mic}
+              as={isConnected ? MicOff : Mic}
               className="text-primary-foreground"
               size={18}
             />

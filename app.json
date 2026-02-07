@@ -1,18 +1,19 @@
 {
   "expo": {
-    "name": "hades",
-    "slug": "hades",
+    "name": "huyang",
+    "slug": "huyang",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "hades",
+    "scheme": "huyang",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "si.aiken.hades",
+      "bundleIdentifier": "si.aiken.huyang",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSMicrophoneUsageDescription": "Huyang needs microphone access for voice conversations with your assistant."
       }
     },
     "android": {
@@ -22,9 +23,12 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "package": "com.hadesfintech.app",
+      "package": "si.aiken.huyang",
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -59,11 +63,13 @@
     },
     "extra": {
       "router": {
-        "origin": false
+        "origin": false,
+        "root": "./src/app"
       },
       "eas": {
-        "projectId": "7cc24826-547e-427c-bb38-5211a1b34737"
+        "projectId": "fd33adcd-8cfe-4d83-84bd-c977bbe0c96e"
       }
-    }
+    },
+    "owner": "aiken"
   }
 }

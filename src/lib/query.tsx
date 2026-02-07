@@ -1,11 +1,15 @@
-import axios from "axios";
-import { QueryClient, onlineManager, focusManager } from "@tanstack/react-query";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
-import { AppState, AppStateStatus } from "react-native";
 import NetInfo from "@react-native-community/netinfo";
-import { createMMKV } from "react-native-mmkv";
+import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
+import {
+  QueryClient,
+  focusManager,
+  onlineManager,
+} from "@tanstack/react-query";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
+import axios from "axios";
 import type { ReactNode } from "react";
+import { AppState, AppStateStatus } from "react-native";
+import { createMMKV } from "react-native-mmkv";
 
 /**
  * Axios instance for all network requests.
@@ -36,7 +40,7 @@ const mmkvPersisterStorage = {
   },
   removeItem: (key: string): void => {
     try {
-      queryCacheStorage.delete(key);
+      queryCacheStorage.remove(key);
     } catch {
       // ignore
     }
@@ -53,7 +57,7 @@ const queryClient = new QueryClient({
   },
 });
 
-const persister = createSyncStoragePersister({
+const persister = createAsyncStoragePersister({
   storage: mmkvPersisterStorage,
   throttleTime: 1000,
 });
@@ -68,7 +72,10 @@ onlineManager.setEventListener((setOnline) => {
 let currentAppState: AppStateStatus = AppState.currentState;
 
 AppState.addEventListener("change", (nextAppState) => {
-  if (currentAppState.match(/inactive|background/) && nextAppState === "active") {
+  if (
+    currentAppState.match(/inactive|background/) &&
+    nextAppState === "active"
+  ) {
     focusManager.setFocused(true);
   }
   currentAppState = nextAppState;
@@ -76,7 +83,10 @@ AppState.addEventListener("change", (nextAppState) => {
 
 export function QueryProvider({ children }: { children: ReactNode }) {
   return (
-    <PersistQueryClientProvider client={queryClient} persistOptions={{ persister }}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister }}
+    >
       {children}
     </PersistQueryClientProvider>
   );
